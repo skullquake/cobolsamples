@@ -1,0 +1,40 @@
+CC=gcc
+COBC=cobc
+COBSRC=./src/a.cob
+APPSRC=./src/a.c
+COBOBJ=./bin/cob.o
+APPOBJ=./bin/app.o
+APPBIN=./bin/a.out
+CFLAGS=\
+	`cob-config --cflags`
+LDFLAGS=\
+	`cob-config --libs`
+COBFLAGS=
+all:\
+	$(APPBIN)
+$(APPBIN):$(APPOBJ) $(COBOBJ)
+	$(CC)\
+		$(APPOBJ) \
+		$(COBOBJ) \
+		$(LDFLAGS) \
+		-o $(APPBIN)
+$(APPOBJ):$(APPSRC)
+	$(CC)\
+		$(CFLAGS)\
+		$(APPSRC)\
+		$(LDFLAGS)\
+		-c \
+		-o $(APPOBJ)
+$(COBOBJ):\
+	$(COBSRC)
+	$(COBC) \
+		-c \
+		-static \
+		$(COBSRC) \
+		-o $(COBOBJ)
+run:$(APPBIN)
+	$(APPBIN)
+.phony:\
+	clean
+clean:
+	rm $(BIN)

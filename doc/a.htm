@@ -1,0 +1,1266 @@
+﻿<h3>What is Cobol</h3>
+<p><code>COBOL</code> (<i>Common Business Oriented Language</i>) is a data processing language developed in late 1950s
+that came out of CODASYL (<i>Conference on Data Systems Language</i>) from the US DoD for business data processing needs.
+Just like we have language standards for <code>c</code> and <code>c++</code>, we have some standards around <code>COBOL</code>
+as well, except that they are much older, e.g. <code>COBOL-61</code>, <code>COBOL-68</code>, <code>COBOL-85</code> and
+<code>Object-Oriented COBOL</code> (2002). Other standards include <code>COBOL-2014</code>, <code>X/Open COBOL</code>,
+<code>IBM</code>, <code>Micro Focus</code>, <code>BS2000</code>, <code>ACUCOBOL-GT</code> and <code>RM/COBOL</code>.</p>
+<p>There also exists the <code>GnuCOBOL</code> standard, a dialect supporting many of the <code>COBOL 2002</code> and
+<code>COBOL 2014</code> features along with extensions found in other dialects and its own feature-set.</p>
+<p><code>COBOL</code> was the first widely used high-level programming language, and today it's used in long running institutions
+that have to handle large volumes of data. It's also intimately associated with the <code>IBM AS/400</code> systems.</p>
+<h3>Installing Cobol</h3>
+<p>There are two popular ways of getting started with <code>COBOL</code>, using the <code>hercules</code> <code>IBM</code>
+<code>System/370</code> / <code>ESA/390</code> architecture emulators (which you can do under <code>*nix</code>), or
+compiling it using <code>open-cobol</code>, a free implementation of the <code>COBOL</code> programming langauge. that
+integrates with the <code>gcc</code> compiler.</p>
+<p>You can use <code>open-cobol</code> for <code>cobol</code> programming under <code>linux</code>. Installation as follows</p>
+<pre><code class="language-javascript">sudo apt-get install open-cobol</code></pre>
+<h3>Hello Cobol</h3>
+<p>You should get <code>cobc</code> at <code>/usr/bin/cobc</code>, the <i>cobol compiler</i>. Here's a source tree</p>
+
+<pre><code class="language-javascript">./
+└── hello
+    ├── bin
+    │   └── a.out
+    ├── makefile
+    └── src
+        └── a.cob</code></pre>
+<p>You can use the following makefile</p>
+<pre><code class="language-javascript">COBC=cobc
+COBCFLAGS=\
+	-free\
+	-x
+BIN=./bin/a.out
+SRC=./src/a.cob
+$(BIN):$(SRC)
+	$(COBC) \
+	$(COBCFLAGS) \
+	-o $(BIN) \
+	$(SRC)
+run:$(BIN)
+	$(BIN) 
+.phony:clean
+clean:
+	rm ./bin/*</code></pre>
+<p><code>./src/a.cob</code> (the default extension of a <code>COBOL</code> source file is <code>cob</code>, as per
+GnuCobol) looks as follows</p>
+<pre><code class="language-javascript">IDENTIFICATION DIVISION.
+PROGRAM-ID. HELLO.
+PROCEDURE DIVISION.
+	DISPLAY 'Hello World'.
+STOP RUN.</code></pre>
+<p><code>vim</code> does have <code>cobol</code> syntax highlighting (<code>/usr/share/vim/vim80/syntax/cobol.vim</code>)</p>
+<p>Compile with <code>make</code> and run with <code>make run</code>.</code>
+<p>The flags for the compiler are as follows<p>
+<ul>
+	<li><code>-free</code>: use free source format, without this it requires a certain format</code></li>
+	<li><code>-x</code>: build an executable compiler</li>
+	<li><code>-o FILE</code>: output file</li>
+</ul>
+<p>Omitting the <code>-free</code> flag switches the syntax back to the old strict syntax, in which case your source will look like this</p>
+<pre><code class="language-javascript">      * Sample COBOL program
+       IDENTIFICATION DIVISION.
+        PROGRAM-ID. hello.
+        PROCEDURE DIVISION.
+        DISPLAY "Hello, world!".
+        STOP RUN.</code></pre>
+<p>Spaces are used throughout, no tabs, and the entire thing is whitespace sensitive. Alternatively, pass in <code>-fixed</code> to <code>cobc</code>
+to ensure this behavior. The structure is: 1-6, the sequence number area; column 7, the indicator area; columns 8-72, the program-text area;
+and columns 72-80 as the reference area.</p>
+<h3>Program Structure</h3>
+<p>A <code>COBOL</code> program consists of the following divisions</p>
+<ul>
+	<li><code>IDENTIFICATION</code>: 1-30 character program identifier, used by programmer/compiler</li>
+	<li><code>ENVIRONMENT</code>: Configuration for source/target system and I/O</li>
+	<li><code>DATA</code>: For defining data structures, variables, external linkage, etc.</li>
+	<li><code>PROCEDURE</code>: Actual statements, there must be at least one statement.</li>
+</ul>
+<p>Here is an example including these sections</p>
+<pre><code class="language-javascript">IDENTIFICATION DIVISION.
+PROGRAM-ID. HELLO.
+
+ENVIRONMENT DIVISION.
+	INPUT-OUTPUT SECTION.
+	FILE-CONTROL.
+	SELECT FILEN ASSIGN TO INPUT.
+		ORGANIZATION IS SEQUENTIAL
+		ACCESS IS SEQUENTIAL.
+
+DATA DIVISION.
+	FILE SECTION.
+	FD FILEN
+	01 NAME PIC A (5).
+
+	WORKING-STORAGE SECTION.
+	01 WS-STUDENT PIC A(30).
+	01 WS-ID PIC 9(5).
+
+	LOCAL-STORAGE SECTION.
+	01 LS-CLASS PIC (3).
+
+	LINKAGE SECTION.
+	01 LS-ID PIC 9(5).
+
+PROCEDURE DIVISION.
+	DISPLAY 'Executing COBOL'
+STOP RUN</code></pre>
+<h3>Whitespace</h3>
+<p>I don't know how to catagorize this, so it goes under whitespace. <code>COBOL</code> is so old that it uses 80 character lines in a way
+that certain character offsets are used for certain things. This goes back to the punched cards that were used in the 50s to program
+mainframe computers. Rediculous, but true...</p>
+<pre><code class="language-javascript">Pos   Fld                 Dsc
+01-06 Column Numbers      Reserved for line numbers
+07-07 Indicator           * : comments,
+                          - : continuation
+                          / : form feed
+08-11 Area A              division, section, paragraph, special entries
+12-72 Area B              statements
+73-80 Identification Area variables etc</code></pre>
+<!--
+<ul>
+	<li><code>Section</code>: logical divivisions in program logic, like blocks</li>
+	<li><code>Paragraphs</code>: subdivides sections</li>
+	<li><code>Sentence</code>: statement/s ending in a dot</li>
+	<li><code>Statement</code>: <code>COBOL</code> parsable keywords</li>
+	<li><code>Character</code>: smallest token</li>
+</ul>
+-->
+<h3>Cobol Compiler Flags</h3>
+<p><code>GnuCobol</code> / <code>OpenCobol</code> has a variety of flags that you can use. The following are with regards to help</p>
+<pre><code class="language-javascript">--help, -h
+	Display help screen. No further actions will be taken.
+--version
+	Display compiler version, author package date and executable build date. -V will also display version. No further actions will be taken.
+--info
+	Display build information along with the default and current compiler configurations. No further actions will be taken except for further display options.
+-v
+	Verbosely display the programs invoked during compilation.
+--list-reserved
+	Display reserved words. A Y/N field shows if the word is supported. 1 The given options for reserved words specified for example by -std will be taken into account. No further actions will be taken except for further display options.
+--list-intrinsics
+	Display intrinsic functions. A Y/N field shows if the function is implemented. No further actions will be taken except for further display options.
+--list-system
+	Display system routines. No further actions will be taken except for further display options.
+--list-mnemonics
+	Display mnemonic names. No further actions will be taken except for further display options.</code></pre>
+<p>The following flags revolve around compilation and build targets</p>
+<pre><code class="language-javascript">-E
+	Preprocess only: compiler directives are executed, comment lines are removed and COPY statements are expanded. The output is saved in file *.i.
+-C
+	Translation only. COBOL source files are translated into C files. The output is saved in file *.c.
+-S
+	Compile only. Translated C files are compiled by the C compiler to assembler code. The output is saved in file *.s.
+-c
+	Compile and assemble. This is equivalent to cc -c. The output is saved in file *.o.
+-m
+	Compile, assemble, and build a dynamically loadable module (i.e., a shared library). The output is saved in file *.so. 2 This is the default behaviour.
+-b
+	Compile, assemble, and combine all input files into a single dynamically loadable module. Unless -o is also used, the output is saved using the first filename as *.so.
+-x
+	Include the main function in the output, creating an executable image. The main entry point being the first program in the file.
+	This option takes effect at the translation stage. If you give this option with -C, you will see the main function at the end of the generated C file.
+-j(=&lt;args&gt;), -job(=&lt;args&gt;)
+	Run job after compilation. Either from executable with -x, or with cobcrun when compiling a module. Optional arguments, if given, are passed to the program or module command line.
+-I &lt;directory&gt;
+	Add &lt;directory&gt; to copy/include search path.
+-L &lt;directory&gt;
+	Add &lt;directory&gt; to library search path.
+-l &lt;lib&gt;
+	Link the library &lt;lib&gt;.
+-D &lt;define&gt;
+	Pass &lt;define&gt; to the COBOL compiler.
+-o &lt;file&gt;
+	Place the output into &lt;file&gt;. </code></pre>
+<p><code>cobc</code> is the COBOL compiler, built on <code>gcc</code>, and much of the flags above are reminiscent on the various compilers built on <code>gcc</code>.
+For example <code>-E</code> preprocesses and produces a <code>.i</code> file, just like <code>gcc</code>. The <code>-C</code> flag can be used to produce
+the <code>C</code> files, as illustrated in the following makefile</p>
+<pre><code class="language-javascript">COBC=cobc
+COBCFLAGS=\
+	-free\
+	-x
+BIN=./bin/a.out
+SRC=./src/a.cob
+SRCC=./bin/a.c
+SRCC=./bin/a.out
+all:\
+	$(SRCC)\
+	$(BIN)
+$(SRCC):$(SRC)
+	$(COBC) \
+	$(COBCFLAGS) \
+	-C\
+	-o $(SRCC) \
+	$(SRC)
+$(BIN):$(SRC)
+	$(COBC) \
+	$(COBCFLAGS) \
+	-o $(BIN) \
+	$(SRC)
+run:$(BIN)
+	$(BIN) 
+.phony:clean
+clean:
+	rm ./bin/* $(SRCC)</code></pre>
+<p>There are also options to specify <i>include</i> directories, <i>library</i> directories, produce <i>shared object</i> libraries, pass in <i>definitions</i>,
+<i>etc.</i></p>
+<!--
+<p>When seperate COBOL sources are provided, the main entry point can be specified using the <code>-m</code> flag, e.g.</p>
+<pre><code class="language-javascript">cobc\
+	-m main.cob\
+	sub0.cob\
+	sub1.cob</code></pre>
+-->
+<h3>C Integration</h3>
+<p>The following rather extended section demonstrates some <code>c</code> / <code>COBOL</code> integration that allows extending <code>COBOL</code> using <code>c</code>. <code>GnuCobol</code> / <code>OpenCobol</code> also provides a <code>c</code> interface with the <code>libcob.h</code> header. The following illustrates 
+calling <code>COBOL</code> from <code>C</code>. First the source tree</p>
+<pre><code class="language-javascript">./
+├── bin
+│   ├── a.out
+│   ├── app.o
+│   └── cob.o
+├── makefile
+└── src
+    ├── a.c
+    └── a.cob</code></pre>
+<p>The <code>makefile</code> looks like this</p>
+<pre><code class="language-javascript">CC=gcc
+COBC=cobc
+COBSRC=./src/a.cob
+APPSRC=./src/a.c
+COBOBJ=./bin/cob.o
+APPOBJ=./bin/app.o
+APPBIN=./bin/a.out
+CFLAGS=\
+	`cob-config --cflags`
+LDFLAGS=\
+	`cob-config --libs`
+COBFLAGS=
+all:\
+	$(APPBIN)
+$(APPBIN):$(APPOBJ) $(COBOBJ)
+	$(CC)\
+		$(APPOBJ) \
+		$(COBOBJ) \
+		$(LDFLAGS) \
+		-o $(APPBIN)
+$(APPOBJ):$(APPSRC)
+	$(CC)\
+		$(CFLAGS)\
+		$(APPSRC)\
+		$(LDFLAGS)\
+		-c \
+		-o $(APPOBJ)
+$(COBOBJ):\
+	$(COBSRC)
+	$(COBC) \
+		-c \
+		-static \
+		$(COBSRC) \
+		-o $(COBOBJ)
+run:$(APPBIN)
+	$(APPBIN)
+.phony:\
+	clean
+clean:
+	rm $(BIN)</code></pre>
+<p>Provided with you <code>GnuCobol</code> / <code>OpenCobol</code> installation will be <code>cob-config</code> which you can use to get the appropriate
+<code>CFLAGS</code> and <code>LDFLAGS</code>.</p>
+<p>Here is the <code>COBOL</code> source file listing, which defines a single <code>PROCEDURE</code>
+called <code>say</code> that we will call from <code>C</code> later on. It merely
+concatenates two strings and prints it to <code>stdout</code></p>
+<pre><code class="language-javascript">       IDENTIFICATION DIVISION.
+       PROGRAM-ID. say.
+       ENVIRONMENT DIVISION.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 hello PIC X(7).
+       01 world PIC X(6).
+       PROCEDURE DIVISION using hello world.
+            DISPLAY hello world.
+            EXIT PROGRAM.</code></pre>
+<p>The main <code>c</code> driver listing is as follows</p>
+<pre><code class="language-javascript">#include&lt;libcob.h&gt;
+#include&lt;stdio.h&gt;
+extern int say(char*hello,char*world);
+int main(int argc,char** argv){
+	int ret=0;
+	char hello[8]="Hello, ";
+	char world[7]="world!";
+	cob_init(0,NULL);
+	ret=say(hello,world);
+	cob_stop_run(ret);
+	return ret;
+}</code></pre>
+<p><code>cob_init</code> initializes the <code>COBOL</code> run-time library, and you have the option to pass in <code>argc</code> and <code>argv</code>, in this
+case we pass in nothing</p>
+<p><code>cob_stop_run</code> is used to exit the <code>COBOL</code> run-time and do some cleanup</p>
+<p>Having declared the <code>PROGRAM-ID</code>  <code>say</code> in our <code>COBOL</code> source, from the <code>c</code> perspective this is equivalent
+to <code>extern int say(char*,char*)</code>, and is indicated as such in our <code>c</code> source code. Note that the strings
+passed on to the <code>COBOL</code> are not <i>null terminated</i>, a peculiarity of <code>COBOL</code></p>
+<p>The following illustrates a recursive <code>makefile</code> so you can manage it all a bit easier, allowing
+you to add <code>c</code> and <code>cob</code> sources as you go along</p>
+<pre><code class="language-javascript">OS=$(shell $(CXX) -dumpmachine)
+BINEXT?=out
+ifeq (,$(findstring mingw,$(OS)))
+BINEXT?=exe
+endif
+ifeq (,$(findstring djgpp,$(OS)))
+BINEXT?=exe
+endif
+ifeq ($(PREFIX),)
+PREFIX := /usr/local
+endif
+CC?=gcc
+COBC?=cobc
+AR?=ar
+BUILDDIR=./bin/build
+BIN=./bin/a.$(BINEXT)
+SRCDIR=src
+SRCC:=$(shell find $(SRCDIR) -name '*.c')
+SRCCOB:=$(shell find $(SRCDIR) -name '*.cob')
+OBJSC:=$(addprefix $(BUILDDIR)/,$(SRCC:%.c=%.o))
+OBJSCOB:=$(addprefix $(BUILDDIR)/,$(SRCCOB:%.cob=%.o))
+OBJS:=\
+	$(OBJSC) \
+	$(OBJSCOB)
+CFLAGS+=\
+	`cob-config --cflags`
+LDFLAGS+=\
+	`cob-config --libs`
+all:\
+	$(BIN)
+$(BIN):$(OBJS)
+	@printf "generating $@...\n"
+	@mkdir -p $(@D)
+	$(CC)\
+		$(OBJS) \
+		$(LDFLAGS) \
+		-o $(BIN)
+
+
+$(BUILDDIR)/%.o: %.c
+	@printf "generating $@...\n"
+	@mkdir -p $(@D)
+	$(CC)\
+		$(CFLAGS)\
+		-c $&lt;\
+		$(LDFLAGS)\
+		-o $@
+$(BUILDDIR)/%.o: %.cob
+	@printf "generating $@...\n"
+	@mkdir -p $(@D)
+	$(COBC)\
+		$&lt; \
+		-c \
+		-static \
+		-o $@
+run:$(BIN)
+	$(BIN)
+.phony:\
+	run\
+	clean\
+	lsvar
+clean:
+	@rm -r ./bin</code></pre>
+<p>Capable of handling arbitrary source trees</p>
+<pre><code class="language-javascript">├── c
+│   ├── a.c
+│   ├── b.c
+│   ├── c.c
+│   └── d.c
+├── cobol
+│   ├── a.cob
+│   ├── b.cob
+│   ├── c.cob
+│   └── d.cob
+└── main.c</code></pre>
+<p>It is also possible to write <code>c</code> functions and call them in <code>COBOL</code>, first the source tree</p>
+<pre><code class="language-javascript">├── bin
+│   ├── a.out
+│   └── build
+│       ├── main.o
+│       └── src
+│           ├── c
+│           │   └── a.o
+│           └── cobol
+│               ├── a.o
+│               ├── b.o
+│               ├── c.o
+│               └── d.o
+├── makefile
+└── src
+    ├── c
+    │   ├── a.c
+    │   └── a.h
+    ├── cobol
+    │   ├── a.cob
+    │   ├── b.cob
+    │   ├── c.cob
+    │   └── d.cob
+    └── main.cob</code></pre>
+<p>In the above various objects are produced in the <code>./bin/build/src</code> output directory, using both <code>cobc</code> and <code>gcc</code>. All the 
+objects produced are combined together using <code>cobc</code>. The main entry point is located in <code>./src/main.cob</code>, and we need
+to differentiate between the main executable <code>COBOL</code> object and other <i>non-main</i> <code>COBOL</code> objects, as illustrated in the
+following <code>makefile</code></p>
+<pre><code class="language-javascript">OS=$(shell $(CXX) -dumpmachine)
+SOEXT?=so
+BINEXT?=out
+ifeq (,$(findstring mingw,$(OS)))
+SOEXT?=dll
+BINEXT?=exe
+endif
+ifeq (,$(findstring djgpp,$(OS)))
+SOEXT?=dll
+BINEXT?=exe
+endif
+ifeq ($(PREFIX),)
+PREFIX := /usr/local
+endif
+CC=gcc
+COBC=cobc
+AR=ar
+BUILDDIR=./bin/build
+BIN=./bin/a.$(BINEXT)
+SRCDIR=src
+SRCC:=$(shell find $(SRCDIR) -name '*.c')
+#differentiate between main cob and other
+SRCCOBMAIN:=./src/main.cob
+OBJCOBMAIN:=$(BUILDDIR)/main.o
+#differentiate between main cob and other
+SRCCOB:=$(shell find $(SRCDIR)/cobol -name '*.cob')
+OBJSC:=$(addprefix $(BUILDDIR)/,$(SRCC:%.c=%.o))
+OBJSCOB:=$(addprefix $(BUILDDIR)/,$(SRCCOB:%.cob=%.o))
+OBJS:=\
+	$(OBJSCOB) \
+	$(OBJSC)
+CFLAGS+=\
+	-I./src 
+LDFLAGS+=
+all:\
+	$(BIN)
+$(BIN):$(OBJS) $(OBJCOBMAIN)
+	@printf "generating $@...\n"
+	@mkdir -p $(@D)
+	$(COBC)\
+		-fixed \
+		-x \
+		-o \
+		$(BIN) \
+		$(OBJCOBMAIN) \
+		$(OBJS) 
+$(BUILDDIR)/%.o: %.c
+	@printf "generating $@...\n"
+	@mkdir -p $(@D)
+	$(CC)\
+		$(CFLAGS)\
+		$&lt; \
+		-c \
+		-o $@
+#MAIN COB
+$(OBJCOBMAIN):$(SRCCOBMAIN)
+	@printf "generating $@...\n"
+	@mkdir -p $(@D)
+	$(COBC)\
+		$&lt; \
+		-x \
+		-c \
+		-static \
+		-o $@
+#OTHER COB
+$(BUILDDIR)/%.o: %.cob
+	@printf "generating $@...\n"
+	@mkdir -p $(@D)
+	$(COBC)\
+		$&lt; \
+		-c \
+		-static \
+		-o $@
+run:$(BIN)
+	$(BIN)
+.phony:\
+	run\
+	clean\
+	lsvar
+clean:
+	@rm -r ./bin</code></pre>
+<p>Here is <code>./src/c/a.c</code>, a simple test function to be called from <code>COBOL</code></p>
+<pre><code class="language-javascript">#include"a.h"
+#include&lt;stdio.h&gt;
+int foo(void){
+	printf("void foo(void)\n");
+	return 0;
+};</code></pre>
+<p>Here is <code>./src/main.cob</code></p>
+<pre><code class="language-javascript">       IDENTIFICATION DIVISION.
+        PROGRAM-ID. hello.
+        PROCEDURE DIVISION.
+         DISPLAY "Hello, world!".
+         CALL "foo"
+         STOP RUN.</code></pre>
+<p>You can also use <code>c++</code>, and in that case your exposed functions will look as follows</p>
+<pre><code class="language-javascript">#include"a.h"
+#include&lt;iostream&gt;
+extern "C"{
+	int foo(void){
+		printf("void foo(void)\n");
+		return 0;
+	};
+}</code></pre>
+<p><code>extern "C"</code> specifies the calling convention to be that of <code>C</code>, which is how <code>COBOL</code> will be calling exposed functions. Also, the above makefile allows you to add more <code>c</code> and <code>cob</code> sources, so let's add another source exposing various types of 
+parameters for testing</p>
+<pre><code class="language-javascript">#include&lt;stdio.h&gt;
+int parchar(char*a){
+	printf("int parchar(char*):%d\n",*a);
+	return 0;
+};
+int paruchar(unsigned char*a){
+	printf("int paruchar(unsigned char*):%d\n",*a);
+	return 0;
+};
+int parint(int*a){
+	printf("int parint(int*):%d\n",*a);
+	return 0;
+};
+int paruint(unsigned int*a){
+	printf("int paruint(unsigned int*):%d\n",*a);
+	return 0;
+};
+int parshort(short*a){
+	printf("int parshort(short*):%d\n",*a);
+	return 0;
+};
+int parushort(unsigned short*a){
+	printf("int parushort(unsigned short*):%d\n",*a);
+	return 0;
+};
+int parlong(long*a){
+	printf("int parlong(long*):%d\n",*a);
+	return 0;
+};
+int parulong(unsigned long*a){
+	printf("int parulong(long*):%d\n",*a);
+	return 0;
+};
+int parlonglong(long long*a){
+	printf("int parlonglong(long long*):%lu\n",*a);
+	return 0;
+};
+int parulonglong(unsigned long*a){
+	printf("int parulong(unsigned long long*):%lu\n",*a);
+	return 0;
+};
+int parlonglongint(long long int*a){
+	printf("int parlonglongint(long long int*):%lu\n",*a);
+	return 0;
+};
+int parulonglongint(unsigned long long int*a){
+	printf("int parulonglongint(unsigned long long int*):%lu\n",*a);
+	return 0;
+};
+int parfloat(float*a){
+	printf("int parfloat(float*):%f\n",*a);
+	return 0;
+}
+int pardouble(double*a){
+	printf("int pardouble(double*):%f\n",*a);
+	return 0;
+}
+int parlongdouble(long double*a){
+	printf("int parfloat(long double*):%f\n",*a);
+	return 0;
+}</code></pre>
+<p>Here is the <code>COBOL</code> calling the above</p>
+<pre><code class="language-javascript">000000 IDENTIFICATION DIVISION.
+000010  PROGRAM-ID. hello.
+000020 DATA DIVISION.
+000030    WORKING-STORAGE SECTION.
+000040    01 I002 BINARY-CHAR            VALUE 12.
+000050    01 I003 BINARY-CHAR UNSIGNED   VALUE 34.
+000060    01 I004 BINARY-SHORT           VALUE 45.
+000070    01 I005 BINARY-SHORT UNSIGNED  VALUE 56.
+000080    01 I006 BINARY-SHORT SIGNED    VALUE -67.
+000090    01 F000 COMPUTATIONAL-1        VALUE 1.23.
+000100    01 F001 COMPUTATIONAL-2        VALUE 1.23.
+000110    01 BC00 BINARY-CHAR            VALUE 12.
+000120    01 BCU0 BINARY-CHAR UNSIGNED   VALUE 12.
+000130    01 BCS0 BINARY-CHAR SIGNED     VALUE 12.
+000140    01 BS00 BINARY-SHORT           VALUE 12.
+000150    01 BSU0 BINARY-SHORT UNSIGNED  VALUE 12.
+000160    01 BSS0 BINARY-SHORT SIGNED    VALUE 12.
+000170    01 BL00 BINARY-LONG            VALUE 12.
+000180    01 BLU0 BINARY-LONG UNSIGNED   VALUE 12.
+000190    01 BCLS BINARY-C-LONG SIGNED   VALUE 12.
+000200    01 BD00 BINARY-DOUBLE          VALUE 12.34.
+000210    01 BDU0 BINARY-DOUBLE UNSIGNED VALUE 12.34.
+000220    01 BDS0 BINARY-DOUBLE SIGNED   VALUE 12.34.
+000230    01 CM10 COMPUTATIONAL-1        VALUE 12.34.
+000240    01 CM20 COMPUTATIONAL-2        VALUE 12.34.
+000250  PROCEDURE DIVISION.
+000260*--------------------------------------------------------------------------------
+000270   DISPLAY '--------------------------------------------'
+000280   DISPLAY 'Matching C Data Types with OpenCobol USAGEs:'
+000290   DISPLAY '--------------------------------------------'
+000300   CALL "parint" USING 0.
+000310   CALL "parint" USING 1.
+000320   CALL "parint" USING 2.
+000330   CALL "parint" USING 3.
+000340   CALL "parint" USING I000.
+000350   CALL "parint" USING I001.
+000360   CALL "parint" USING I002.
+000370   CALL "parint" USING I003.
+000380   CALL "parint" USING I004.
+000390   CALL "parint" USING I005.
+000400   CALL "parint" USING I006.
+000410   DISPLAY '--------------------------------------------'
+000420   DISPLAY 'Matching C Data Types with OpenCobol USAGEs:'
+000430   DISPLAY '--------------------------------------------'
+000440   DISPLAY 'NUMERIC TESTS'
+000450   DISPLAY '--------------------------------------------'
+000460*  int paruchar(unsigned char*)---------------------BINARY-CHAR
+000470*                                                   BINARY-CHAR UNSIGNED
+000480   CALL 'paruchar'       USING 12.
+000490   CALL 'paruchar'       USING BC00.
+000500   CALL 'paruchar'       USING BCU0.
+000510*  int parchar(char*)-------------------------------BINARY-CHAR SIGNED
+000520   CALL 'parchar'        USING 12.
+000530   CALL 'parchar'        USING BCS0.
+000540*  int paruint(unsigned int*)-----------------------BINARY-SHORT
+000550*                                                   BINARY-SHORT UNSIGNED
+000560   CALL 'paruint'        USING 12.
+000570   CALL 'paruint'        USING BS00.
+000580   CALL 'paruint'        USING BSU0.
+000590*  int parint(int*)---------------------------------BINARY-SHORT SIGNED
+000600   CALL 'parint'         USING 12.
+000610   CALL 'parint'         USING BSS0.
+000620*  int parshort(short*)-----------------------------BINARY-SHORT SIGNED
+000630   CALL 'parshort'       USING 12.
+000640   CALL 'parshort'       USING BSS0.
+000650*  int parushort(unsigned short*)-------------------BINARY-SHORT UNSIGNED
+000660   CALL 'parushort'      USING 12.
+000670   CALL 'parushort'      USING BSU0.
+000680*  int parlong(long*)-------------------------------BINARY-LONG
+000690   CALL 'parlong'        USING 12.
+000700   CALL 'parlong'        USING BL00.
+000710*  int parulong(unsigned long*)---------------------BINARY-LONG UNSIGNED
+000720   CALL 'parulong'       USING 12.
+000730   CALL 'parulong'       USING BLU0.
+000740*  int parlonglong(long long*)----------------------BINARY-DOUBLE SIGNED
+000750   CALL 'parlonglong'    USING 12.
+000760   CALL 'parlonglong'    USING BDS0.
+000770*  int parulonglong(unsigned long*)-----------------BINARY-DOUBLE UNSIGNED
+000780   CALL 'parulonglong'   USING 12.
+000790   CALL 'parulonglong'   USING BDU0.
+000800*  int parlonglongint(long long int*)---------------BINARY-DOUBLE SIGNED
+000810   CALL 'parlonglongint' USING 12.
+000820   CALL 'parlonglongint' USING BDS0.
+000830*  int parfloat(float*)-----------------------------COMPUTATIONAL-1
+000840*                              literal does not work?
+000850   CALL 'parfloat'       USING 12.34.
+000860*                              variable works though
+000870   CALL 'parfloat'       USING CM10.
+000880*  int pardouble(double*)---------------------------COMPUTATIONAL-2
+000890*                              literal does not work?
+000900   CALL 'pardouble'      USING 12.34.
+000910*                              variable works though
+000920   CALL 'pardouble'      USING CM20.
+000930   STOP RUN.</code></pre>
+<p>Let's take a look at passing in strings. <code>COBOL</code> strings are not <code>c-strings</code>,
+and have no <i>null terminator</i>. Two options for passing in <code>COBOL</code> strings into a <code>c</code>
+function includes passing in two arguments, one the <code>COBOL</code> string and the other the length, e.g.</p>
+<pre><code class="language-javascript">#include&lt;stdio.h&gt;
+#include&lt;stdlib.h&gt;
+int parstr(char*c,int*len){
+	char*buf=(char*)malloc(*len+1);
+	memcpy(buf,c,*len);
+	printf("int parstr(char*,*int):%s:\n",buf);
+	free(buf);
+	return 0;
+};</code></pre>
+<p>Then, from the <code>COBOL</code>, call as follows</p>
+<pre><code class="language-javascript">            SET S000 TO 'FOOBAR'.
+            DISPLAY BS00
+            CALL 'parstr' USING 'asdf' 4
+            COMPUTE BS00= LENGTH OF S000
+            CALL 'parstr' USING S000 BS00</code></pre>
+<p>Above, <code>BS00</code> is a <code>BINARY-SHORT</code> for an appropriate data type for the <code>COBOL</code> string length,
+and <code>S000</code> is <code>PIC X(512)</code>. The downside to this is that <code>BS00</code> is computed as the full length,
+<code>512</code>, as this is the functionality for string length provided by <code>COBOL</code></p>.
+<p>It is actually possible to pass in <code>c-string</code>s, but the terminator has to be added manually <code>COBOL</code> side as
+follows</p>
+<pre><code class="language-javascript">            STRING
+                X'0A'
+                '----------------------------------------' X'0A'
+                'Lorem ipsum' X'0A'
+                'sit consecutar' X'0A'
+                'dolar amet' X'0A'
+                '----------------------------------------' X'0A'
+                X'00'
+            INTO S000.
+            CALL 'parcstr' USING S000</code></pre>
+<p>Here the escape sequences are indicated with <code>X</code>, for example <code>X'0A'</code> is a newline, and
+<code>X'00'</code> is the <code>'\0'</code> terminator. This can be passed into <code>parcstr</code>, which looks
+as follows</p>
+<pre><code class="language-javascript">#include&lt;stdio.h&gt;
+int parcstr(char*c){
+	printf("int parcstr(char*):%s:\n",c);
+	return 0;
+};</code></pre>
+<p>This just prints a regular <code>c-string</code></p>
+<p>Returning values from <code>c</code> functions exposed to <code>COBOL</code> can be accomplished via reference
+arguments, and as they are already passed in as pointers, they can be manipulated directly, for example these case
+manipulation functions in <code>c</code>...</p>
+<pre><code class="language-javascript">#include&lt;stdio.h&gt;
+#include&lt;stdlib.h&gt;
+int partolower(char*c){
+	int i;
+	if(c!=NULL){
+		for(i=0;i&lt;strlen(c);i++){
+			c[i]=tolower(c[i]);
+		}
+	}
+	return 0;
+}
+int partoupper(char*c){
+	int i;
+	if(c!=NULL){
+		for(i=0;i&lt;strlen(c);i++){
+			c[i]=toupper(c[i]);
+		}
+	}
+	return 0;
+}</code></pre>
+<p>...can be called in cobol as follows</p>
+<pre><code class="language-javascript">            STRING
+                X'0A'
+                '----------------------------------------' X'0A'
+                'Lorem ipsum' X'0A'
+                'sit consecutar' X'0A'
+                'dolar amet' X'0A'
+                '----------------------------------------' X'0A'
+                X'00'
+            INTO S000.
+            CALL 'partolower' USING S000
+            DISPLAY S000
+            CALL 'partoupper' USING S000
+            DISPLAY S000
+            EXIT PROGRAM.</code></pre>
+<p>The <code>COBOL</code> <code>DISPLAY</code> statement will reflect the changes made to the <code>COBOL</code> string in the
+<code>c</code> function calls. Manipulating integral and floating point types will be the same as with this string example, using
+pointers</p>
+<p>We still need to look at passing in and manipulating <code>array</code>s as well as <code>struct</code>s. For arrays, the only
+type I could get to work was <code>BINARY-C-LONG</code>. In order to declare an array, we use the following</p>
+<pre><code class="language-javascript">          01 ARR.
+             05 ARRR BINARY-C-LONG OCCURS 8 TIMES.</code></pre>
+<p>It's important to get the size of an array <code>COBOL</code> side, and for that you can use the following</p>
+<pre><code class="language-javascript">          01 J BINARY-SHORT SIGNED VALUE 0.
+          ...
+          SET J TO LENGTH OF ARRR.</code></pre>
+<p>The length of the second level of the array is determined using the <code>LENGTH</code> <code>COBOL</code> keyword. You can iterate through
+and array for population and printing as follows</p>
+<pre><code class="language-javascript">      * populate
+            SET J TO LENGTH OF ARRR.
+            PERFORM VARYING I FROM 1 BY 1 UNTIL I &gt; J
+                 SET ARRR(I) TO I
+            END-PERFORM.
+      * select
+            PERFORM VARYING I FROM 1 BY 1 UNTIL I &lt; J
+                 DISPLAY ARRR(I)
+            END-PERFORM.</code></pre>
+<p>Let's expose two functions from the <code>c</code> side to print and manipulate arrays of <code>long</code></p>
+<pre><code class="language-javascript">int pararrlongprint(long*arr,int*len){
+	printf("int pararrlong(long*,int):\n");
+	printf("%d elements: ",*len);
+	int i;
+	for(i=0;i&lt;*len;i++){
+		printf("%ld ",arr[i]);
+	}
+	printf("\n");
+	return 0;
+}
+int pararrlongmanip(long*arr,int*len){
+	printf("int pararrlongmanip(long*,int):\n");
+	int i;
+	for(i=0;i&lt;*len;i++){
+		arr[i]=i*2;
+	}
+	printf("\n");
+	return 0;
+}</code></pre>
+<p>Here's a full <code>COBOL</code> program using the above, verifying the output with <code>COBOL</code> printouts</p>
+<pre><code class="language-javascript">       IDENTIFICATION DIVISION.
+       PROGRAM-ID. cobf0.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+       DATA DIVISION.
+          WORKING-STORAGE SECTION.
+      * counters
+          01 I BINARY-SHORT SIGNED VALUE 0.
+          01 J BINARY-SHORT SIGNED VALUE 0.
+      * arrays
+          01 ARR.
+      *      05 ARRR PIC 9(1) OCCURS 8 TIMES INDEXED BY ARRIDX.
+      *      05 ARRR BINARY-C-LONG OCCURS 8 TIMES INDEXED BY ARRIDX.
+             05 ARRR BINARY-C-LONG OCCURS 8 TIMES.
+       LINKAGE SECTION.
+       PROCEDURE DIVISION.
+      * populate
+            SET J TO LENGTH OF ARRR.
+            PERFORM VARYING I FROM 1 BY 1 UNTIL I &gt; J
+                 SET ARRR(I) TO I
+            END-PERFORM.
+      * select
+            PERFORM VARYING I FROM 1 BY 1 UNTIL I &gt; J
+                 DISPLAY ARRR(I)
+            END-PERFORM.
+      * c passing
+            CALL 'pararrulongprint'       USING ARR J.
+            CALL 'pararrulongmanip'       USING ARR J.
+      * select
+            PERFORM VARYING I FROM 1 BY 1 UNTIL I &gt; J
+                 DISPLAY ARRR(I)
+            END-PERFORM.
+            EXIT PROGRAM.</code></pre>
+<p>Next, lets look at passing in <code>struct</code>s. First, from the <code>c</code> perspective, a variety of <code>struct</code>s and functions taking <code>struct</code> pointers</p>
+<pre><code class="language-javascript">#include&lt;stdio.h&gt;
+struct StructInt{
+	int a;
+	int b;
+	int c;
+	int d;
+};
+struct StructUInt{
+	unsigned int a;
+	unsigned int b;
+	unsigned int c;
+	unsigned int d;
+};
+struct StructLong{
+	long a;
+	long b;
+	long c;
+	long d;
+};
+struct StructULong{
+	unsigned long a;
+	unsigned long b;
+	unsigned long c;
+	unsigned long d;
+};
+struct StructStr{
+	char a[32];
+	char b[32];
+	char c[32];
+	char d[32];
+};
+struct StructStrPtr{
+	char*a;
+	char*b;
+	char*c;
+	char*d;
+};
+int parstructint(struct StructInt*s){
+	printf("int parstructint(struct StructInt*):\n");
+	printf("[%d,%d,%d,%d]\n",s-&gt;a,s-&gt;b,s-&gt;c,s-&gt;d);
+	return 0;
+}
+int parstructuint(struct StructUInt*s){
+	printf("int parstructuint(struct StructUInt*):\n");
+	printf("[%d,%d,%d,%d]\n",s-&gt;a,s-&gt;b,s-&gt;c,s-&gt;d);
+	return 0;
+}
+int parstructlong(struct StructLong*s){
+	printf("int parstructlong(struct StructLong*):\n");
+	printf("[%ld,%ld,%ld,%ld]\n",s-&gt;a,s-&gt;b,s-&gt;c,s-&gt;d);
+	return 0;
+}
+int parstructulong(struct StructULong*s){
+	printf("int parstructulong(struct StructULong*):\n");
+	printf("[%lu,%lu,%lu,%lu]\n",s-&gt;a,s-&gt;b,s-&gt;c,s-&gt;d);
+	return 0;
+}
+int parstructstr(struct StructStr*s){
+	printf("int parstructstr(struct StructStr*):\n");
+	printf("[%s,%s,%s,%s]\n",s-&gt;a,s-&gt;b,s-&gt;c,s-&gt;d);
+	return 0;
+}</code></pre>
+<p>Here is the <code>COBOL</code> calling these functions with its own structured data</p>
+<pre><code class="language-javascript">       IDENTIFICATION DIVISION.
+       PROGRAM-ID. cobf0.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+       DATA DIVISION.
+          WORKING-STORAGE SECTION.
+          01 BS00 BINARY-SHORT           VALUE 12.
+      * counters
+          01 I BINARY-SHORT SIGNED VALUE 0.
+          01 J BINARY-SHORT SIGNED VALUE 0.
+      * arrays
+          01 ARR.
+      *      05 ARRR PIC 9(1) OCCURS 8 TIMES INDEXED BY ARRIDX.
+      *      05 ARRR BINARY-C-LONG OCCURS 8 TIMES INDEXED BY ARRIDX.
+             05 ARRR BINARY-C-LONG OCCURS 8 TIMES.
+      * structs
+          01 STRCT0.
+             05 STRCT0M0 BINARY-SHORT VALUE 0.
+             05 STRCT0M1 BINARY-SHORT VALUE 1.
+             05 STRCT0M2 BINARY-SHORT VALUE 2.
+             05 STRCT0M3 BINARY-SHORT VALUE 3.
+          01 STRCT1.
+             05 STRCT1M0 BINARY-C-LONG VALUE 10.
+             05 STRCT1M1 BINARY-C-LONG VALUE 11.
+             05 STRCT1M2 BINARY-C-LONG VALUE 12.
+             05 STRCT1M3 BINARY-C-LONG VALUE 13.
+          01 STRCT2.
+             05 STRCT2M0 PIC X(32) VALUE ''.
+             05 STRCT2M1 PIC X(32) VALUE ''.
+             05 STRCT2M2 PIC X(32) VALUE ''.
+             05 STRCT2M3 PIC X(32) VALUE ''.
+
+       LINKAGE SECTION.
+       PROCEDURE DIVISION.
+      * populate struct of strings adding null terminators
+            STRING 'foo' X'00' INTO STRCT2M0 
+            STRING 'bar' X'00' INTO STRCT2M1
+            STRING 'baz' X'00' INTO STRCT2M2
+            STRING 'qux' X'00' INTO STRCT2M3
+            DISPLAY STRCT2.
+            DISPLAY STRCT2M0.
+            DISPLAY STRCT2M1.
+            DISPLAY STRCT2M2.
+            DISPLAY STRCT2M3.
+      * c passing
+      *     CALL 'parstructuint'       USING STRCT0.
+            CALL 'parstructint'        USING BY REFERENCE STRCT0.
+            CALL 'parstructuint'       USING BY REFERENCE STRCT0.
+            CALL 'parstructint'        USING BY REFERENCE STRCT1.
+            CALL 'parstructuint'       USING BY REFERENCE STRCT1.
+            CALL 'parstructlong'       USING BY REFERENCE STRCT0.
+            CALL 'parstructulong'      USING BY REFERENCE STRCT0.
+            CALL 'parstructlong'       USING BY REFERENCE STRCT1.
+            CALL 'parstructulong'      USING BY REFERENCE STRCT1.
+            CALL 'parstructstr'        USING BY REFERENCE STRCT2.
+            EXIT PROGRAM.</code></pre>
+<p>Currently I'm only having success with <code>BINARY-C-LONG</code> for numerics and populating fixed size <code>char</code> arrays in <code>c</code> <code>struct</code>s, <i>i.e.</i> <code>PIC X(32)</code> -&gt; <code>char[32]</code></p>
+<p>That covers most of the <code>COBOL</code>-&gt;<code>C</code> argument passing, next we will cover <code>C</code>-&gt;<code>COBOL</code> argument passing, <i>i.e.</i>
+calling <code>COBOL</code> functions from <code>c</code> using the appropriate data types.</p>
+<p>The following sample tests sending in integral, floating point, string, array, and struct. Here is the <code>C</code> program</p>
+
+<pre><code class="language-javascript">#include&lt;libcob.h&gt;
+#include&lt;stdio.h&gt;
+#include&lt;string.h&gt;
+#include&lt;math.h&gt;
+struct STRCTBS{
+	long STRCTBSM0;
+	long STRCTBSM1;
+	long STRCTBSM2;
+	long STRCTBSM3;
+};
+struct STRCTPICX32{
+	char STRCTPICX32M0[32];
+	char STRCTPICX32M1[33];
+	char STRCTPICX32M2[33];
+	char STRCTPICX32M3[33];
+};
+struct STRCTBCL{
+	long STRCTBCLM0;
+	long STRCTBCLM1;
+	long STRCTBCLM2;
+	long STRCTBCLM3;
+};
+extern "C"{
+	extern int cobparvoid(        void                );
+	extern int cobparfloat(       float*              );
+	extern int cobparint(         int*                );
+	extern int cobparstr(         char*               );
+	extern int cobpararrint(      int*                );
+	extern int cobpararrlong(     long*               );
+	extern int cobpararrfloat(    float*              );
+	extern int cobpararrstr(      char*               );
+	extern int cobparstructbs(    struct STRCTBS*     );
+	extern int cobparstructpicx32(struct STRCTPICX32* );
+	extern int cobparstructbcl(   struct STRCTBCL*    );
+}
+int main(int argc,char** argv){
+	//--------------------------------------------------------------------------------
+	int  ret=0;
+	int    i=1234;
+	float  j=12.34;
+	char   k[32];
+	int    l[8]={0,1,2,3,4,5,6,7};
+	long   m[8]={0,1,2,3,4,5,6,7};
+	float  n[128];
+	char   o[32][8];
+	struct STRCTBS     p;
+	struct STRCTPICX32 q;
+	struct STRCTBCL    r;
+	//--------------------------------------------------------------------------------
+	for(i=0;i&lt;sizeof(n)/sizeof(n[0]);i++){
+		n[i]=sin(2*M_PI*i/128.0);
+	}
+	for(i=0;i&lt;sizeof(o)/sizeof(o[0]);i++){
+		sprintf(o[i],"str %d",i);
+	}
+	p.STRCTBSM0=0;
+	p.STRCTBSM1=1;
+	p.STRCTBSM2=2;
+	p.STRCTBSM3=3;
+	memset(q.STRCTPICX32M0,0x20,sizeof(q.STRCTPICX32M0));
+	memset(q.STRCTPICX32M1,0x20,sizeof(q.STRCTPICX32M0));
+	memset(q.STRCTPICX32M2,0x20,sizeof(q.STRCTPICX32M0));
+	memset(q.STRCTPICX32M3,0x20,sizeof(q.STRCTPICX32M0));
+	sprintf(q.STRCTPICX32M0,"foo");
+	sprintf(q.STRCTPICX32M1,"bar");
+	sprintf(q.STRCTPICX32M2,"baz");
+	sprintf(q.STRCTPICX32M3,"qux");
+	r.STRCTBCLM0=0;
+	r.STRCTBCLM1=1;
+	r.STRCTBCLM2=2;
+	r.STRCTBCLM3=3;
+	//--------------------------------------------------------------------------------
+	cob_init(0,NULL);
+	cobparvoid();
+	cobparint(&amp;i);
+	cobparfloat(&amp;j);
+	cobparstr(k);
+	cobpararrint(l);
+	cobpararrlong(m);
+	cobpararrfloat(n);
+	cobpararrstr((char*)o);
+	cobparstructbs(&amp;p);
+	cobparstructpicx32(&amp;q);
+	cobparstructbcl(&amp;r);
+	cob_stop_run(ret);
+	//--------------------------------------------------------------------------------
+	return ret;
+}</code></pre>
+<p>A variety of <code>struct</code>s are declared for testing, the external <code>COBOL</code> functions are declared, some variables and <code>struct</code>
+are created on the heap, the <code>COBOL</code> environment is started, and the <code>COBOL</code> functions invoked with the relevant parameters.</p>
+<p>The <code>COBOL</code> test functions all live in their own seperate sources</p>
+<pre><code class="language-javascript">├── pararrfloat.cob
+├── pararrint.cob
+├── pararrlong.cob
+├── pararrstr.cob
+├── parfloat.cob
+├── parint.cob
+├── parstr.cob
+├── parstructbcl.cob
+├── parstructbs.cob
+└── parstructpicx32.cob</code></pre>
+<p>The general <code>makefile</code> handles this automatically, compiling their individual object targets and linking it with the final program.</p>
+<p>Here are the <code>COBOL</code> sources</p>
+<pre><code class="language-javascript">       IDENTIFICATION DIVISION.
+       PROGRAM-ID. cobpararrfloat.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+       DATA DIVISION.
+          WORKING-STORAGE SECTION.
+       01 I BINARY-SHORT.
+       01 J BINARY-SHORT.
+       LINKAGE SECTION.
+       01 P000.
+          05 P000R COMPUTATIONAL-1 OCCURS 128 TIMES.
+       PROCEDURE DIVISION using P000.
+            DISPLAY "----------------------------------------".
+            DISPLAY "pararrfloat()".
+            DISPLAY "----------------------------------------".
+            SET J TO LENGTH OF P000R.
+            SET J TO 128.
+            PERFORM VARYING I FROM 1 BY 1 UNTIL I &gt; J
+                 DISPLAY I':'P000R(I)
+            END-PERFORM.
+            DISPLAY "----------------------------------------".
+            EXIT PROGRAM.</code></pre>
+<pre><code class="language-javascript">       IDENTIFICATION DIVISION.
+       PROGRAM-ID. cobpararrint.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+       DATA DIVISION.
+          WORKING-STORAGE SECTION.
+       01 I BINARY-SHORT.
+       01 J BINARY-SHORT.
+       LINKAGE SECTION.
+       01 P000.
+          05 P000R BINARY-SHORT OCCURS 8 TIMES.
+       PROCEDURE DIVISION using P000.
+            DISPLAY "----------------------------------------".
+            DISPLAY "pararrint()".
+            DISPLAY "----------------------------------------".
+            SET J TO LENGTH OF P000R.
+            PERFORM VARYING I FROM 1 BY 1 UNTIL I &gt; J
+                 DISPLAY P000R(I)
+            END-PERFORM.
+            DISPLAY "----------------------------------------".
+            EXIT PROGRAM.</code></pre>
+<pre><code class="language-javascript">       IDENTIFICATION DIVISION.
+       PROGRAM-ID. cobpararrlong.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+       DATA DIVISION.
+          WORKING-STORAGE SECTION.
+       01 I BINARY-SHORT.
+       01 J BINARY-SHORT.
+       LINKAGE SECTION.
+       01 P000.
+          05 P000R BINARY-C-LONG OCCURS 8 TIMES.
+       PROCEDURE DIVISION using P000.
+            DISPLAY "----------------------------------------".
+            DISPLAY "pararrlong()".
+            DISPLAY "----------------------------------------".
+            SET J TO LENGTH OF P000R.
+            PERFORM VARYING I FROM 1 BY 1 UNTIL I &gt; J
+                 DISPLAY P000R(I)
+            END-PERFORM.
+            DISPLAY "----------------------------------------".
+            EXIT PROGRAM.</code></pre>
+<pre><code class="language-javascript">       IDENTIFICATION DIVISION.
+       PROGRAM-ID. cobpararrstr.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+       DATA DIVISION.
+          WORKING-STORAGE SECTION.
+       01 I BINARY-SHORT.
+       01 J BINARY-SHORT.
+       LINKAGE SECTION.
+       01 P000.
+          05 P000R PIC X(8) OCCURS 32 TIMES.
+       PROCEDURE DIVISION using P000.
+            DISPLAY "----------------------------------------".
+            DISPLAY "pararrstr()".
+            DISPLAY "----------------------------------------".
+            COMPUTE J=( LENGTH OF P000 / LENGTH OF P000R )
+            DISPLAY J ' Strings'
+            PERFORM VARYING I FROM 1 BY 1 UNTIL I &gt; J
+                 DISPLAY P000R(I)
+            END-PERFORM.
+            DISPLAY "----------------------------------------".
+            EXIT PROGRAM.</code></pre>
+<pre><code class="language-javascript">       IDENTIFICATION DIVISION.
+       PROGRAM-ID. cobparfloat.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+       DATA DIVISION.
+          WORKING-STORAGE SECTION.
+       LINKAGE SECTION.
+       01 P000 COMPUTATIONAL-1.
+       PROCEDURE DIVISION using P000.
+            DISPLAY "----------------------------------------".
+            DISPLAY "parfloat()".
+            DISPLAY "----------------------------------------".
+            DISPLAY P000.
+            DISPLAY "----------------------------------------".
+            EXIT PROGRAM.</code></pre>
+<pre><code class="language-javascript">       IDENTIFICATION DIVISION.
+       PROGRAM-ID. cobparint.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+       DATA DIVISION.
+          WORKING-STORAGE SECTION.
+       LINKAGE SECTION.
+       01 P000 BINARY-SHORT.
+       PROCEDURE DIVISION using P000.
+            DISPLAY "----------------------------------------".
+            DISPLAY "parint()".
+            DISPLAY "----------------------------------------".
+            DISPLAY P000.
+            DISPLAY "----------------------------------------".
+            EXIT PROGRAM.</code></pre>
+<pre><code class="language-javascript">       IDENTIFICATION DIVISION.
+       PROGRAM-ID. cobparstr.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+       DATA DIVISION.
+          WORKING-STORAGE SECTION.
+       LINKAGE SECTION.
+       01 P000 PIC X(32).
+       PROCEDURE DIVISION using P000.
+            DISPLAY "----------------------------------------".
+            DISPLAY "parstr()".
+            DISPLAY "----------------------------------------".
+            DISPLAY P000.
+            DISPLAY "----------------------------------------".
+            EXIT PROGRAM.</code></pre>
+<pre><code class="language-javascript">       IDENTIFICATION DIVISION.
+       PROGRAM-ID. cobparstructbcl.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+       DATA DIVISION.
+          WORKING-STORAGE SECTION.
+       LINKAGE SECTION.
+          01 STRCTBCL.
+             05 STRCTBCLM0 BINARY-C-LONG.
+             05 STRCTBCLM1 BINARY-C-LONG.
+             05 STRCTBCLM2 BINARY-C-LONG.
+             05 STRCTBCLM3 BINARY-C-LONG.
+       PROCEDURE DIVISION USING STRCTBCL.
+            DISPLAY "----------------------------------------".
+            DISPLAY "parstructbcl()".
+            DISPLAY "----------------------------------------".
+            DISPLAY STRCTBCL.
+            DISPLAY STRCTBCLM0.
+            DISPLAY STRCTBCLM1.
+            DISPLAY STRCTBCLM2.
+            DISPLAY STRCTBCLM3.
+            DISPLAY "----------------------------------------".
+            EXIT PROGRAM.</code></pre>
+<pre><code class="language-javascript">
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. cobparstructbs.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+       DATA DIVISION.
+          WORKING-STORAGE SECTION.
+       LINKAGE SECTION.
+          01 STRCTBS.
+             05 STRCTBSM0 BINARY-SHORT VALUE 0.
+             05 STRCTBSM1 BINARY-SHORT VALUE 1.
+             05 STRCTBSM2 BINARY-SHORT VALUE 2.
+             05 STRCTBSM3 BINARY-SHORT VALUE 3.
+        PROCEDURE DIVISION USING STRCTBS.
+            DISPLAY "----------------------------------------".
+            DISPLAY "parstructbs()".
+            DISPLAY "----------------------------------------".
+            DISPLAY STRCTBS.
+            DISPLAY STRCTBSM0.
+            DISPLAY STRCTBSM1.
+            DISPLAY STRCTBSM2.
+            DISPLAY STRCTBSM3.
+            DISPLAY "----------------------------------------".
+            EXIT PROGRAM.</code></pre>
+<pre><code class="language-javascript">
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. cobparstructpicx32.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+       DATA DIVISION.
+          WORKING-STORAGE SECTION.
+       LINKAGE SECTION.
+          01 STRCTPICX32.
+             05 STRCTPICX32M0 PIC X(32).
+             05 STRCTPICX32M1 PIC X(32).
+             05 STRCTPICX32M2 PIC X(32).
+             05 STRCTPICX32M3 PIC X(32).
+        PROCEDURE DIVISION USING STRCTPICX32.
+            DISPLAY "----------------------------------------".
+            DISPLAY "parstructpicx32()".
+            DISPLAY "----------------------------------------".
+            DISPLAY STRCTPICX32.
+            DISPLAY STRCTPICX32M0.
+            DISPLAY STRCTPICX32M1.
+            DISPLAY STRCTPICX32M2.
+            DISPLAY STRCTPICX32M3.
+            DISPLAY "----------------------------------------".
+            EXIT PROGRAM.</code></pre>
+<script>Prism.highlightAll();</script>

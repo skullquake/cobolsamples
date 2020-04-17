@@ -1,0 +1,8 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. fnb.
+       ENVIRONMENT DIVISION.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       PROCEDURE DIVISION.
+            DISPLAY 'no arguments'.
+            EXIT PROGRAM.
